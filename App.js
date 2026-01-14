@@ -1,7 +1,21 @@
-import Signup from "./components/Signup";
+import { useState } from "react";
+import Login from "./Login";
+import Welcome from "./Welcome";
 
 function App() {
-  return <Signup />;
+
+  const [isLogged, setIsLogged] = useState(
+    !!localStorage.getItem("token")
+  );
+
+  return (
+    <>
+      {isLogged 
+        ? <Welcome /> 
+        : <Login onLogin={()=>setIsLogged(true)} />
+      }
+    </>
+  );
 }
 
 export default App;
