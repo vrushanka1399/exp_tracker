@@ -1,5 +1,14 @@
-function Welcome() {
+import React from "react";
 
+function Welcome({ onLogout }) {
+
+  // LOGOUT
+  const logoutHandler = () => {
+    localStorage.removeItem("token"); // clear token
+    onLogout(); // redirect to login
+  };
+
+  // VERIFY EMAIL
   const verifyEmailHandler = async () => {
 
     const token = localStorage.getItem("token");
@@ -33,14 +42,37 @@ function Welcome() {
   };
 
   return (
-    <div style={{textAlign:"center"}}>
+    <div>
 
-      <h2>Welcome to Expense Tracker</h2>
+      {/* TOP BAR */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          padding: "10px",
+          background: "#222",
+          color: "white"
+        }}
+      >
+        <h3>Expense Tracker</h3>
 
-      <button onClick={verifyEmailHandler}>
-        Verify Email
-      </button>
+        <button onClick={logoutHandler}>
+          Logout
+        </button>
+      </div>
 
+      {/* MAIN */}
+      <div style={{ textAlign: "center", marginTop: "40px" }}>
+        <h2>Welcome to Expense Tracker</h2>
+
+        <p style={{ color: "red" }}>
+          Your email is not verified
+        </p>
+
+        <button onClick={verifyEmailHandler}>
+          Verify Email
+        </button>
+      </div>
     </div>
   );
 }

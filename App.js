@@ -11,7 +11,7 @@ function App() {
   return (
     <>
       {isLogged 
-        ? <Welcome /> 
+        ? <Welcome onLogout={()=>setIsLogged(false)} /> 
         : <Login onLogin={()=>setIsLogged(true)} />
       }
     </>
