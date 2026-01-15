@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState, useEffect } from "react";
 import { updateProfile } from "firebase/auth";
 import { auth } from "./firebase";
 
@@ -6,6 +6,33 @@ function CompleteProfile() {
 
   const [name, setName] = useState("");
   const [photo, setPhoto] = useState("");
+
+  const token = localStorage.getItem("token");
+
+  // 🔁 FETCH USER DATA ON LOAD
+  useEffect(() => {
+    fetch(
+      "https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyBo8Pwmbti299m4tq4c--iyz2pdn5uB2S8",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          idToken: token
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )
+      .then(res => res.json())
+      .then(data => {
+        const user = data.users[0];
+
+        // Prefill inputs
+        setName(user.displayName || "");
+        setPhoto(user.photoUrl || "");
+      });
+
+  }, []);
 
   const updateHandler = async (e) => {
     e.preventDefault();
@@ -16,7 +43,7 @@ function CompleteProfile() {
         photoURL: photo
       });
 
-      alert("Profile updated successfully!");
+      alert("Profile updated!");
 
     } catch (err) {
       alert(err.message);
@@ -28,14 +55,15 @@ function CompleteProfile() {
       <h2>Complete Profile</h2>
 
       <form onSubmit={updateHandler}>
+
         <input
-          type="text"
+          value={name}
           placeholder="Full Name"
           onChange={(e)=>setName(e.target.value)}
         />
 
         <input
-          type="text"
+          value={photo}
           placeholder="Profile Photo URL"
           onChange={(e)=>setPhoto(e.target.value)}
         />
