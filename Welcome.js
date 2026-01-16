@@ -1,11 +1,12 @@
-import React from "react";
+﻿import React from "react";
+import ExpenseTracker from "./ExpenseTracker";
 
 function Welcome({ onLogout }) {
 
   // LOGOUT
   const logoutHandler = () => {
-    localStorage.removeItem("token"); // clear token
-    onLogout(); // redirect to login
+    localStorage.removeItem("token");
+    onLogout();
   };
 
   // VERIFY EMAIL
@@ -45,24 +46,19 @@ function Welcome({ onLogout }) {
     <div>
 
       {/* TOP BAR */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          padding: "10px",
-          background: "#222",
-          color: "white"
-        }}
-      >
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        padding: "10px",
+        background: "#222",
+        color: "white"
+      }}>
         <h3>Expense Tracker</h3>
-
-        <button onClick={logoutHandler}>
-          Logout
-        </button>
+        <button onClick={logoutHandler}>Logout</button>
       </div>
 
       {/* MAIN */}
-      <div style={{ textAlign: "center", marginTop: "40px" }}>
+      <div style={{ textAlign: "center", marginTop: "20px" }}>
         <h2>Welcome to Expense Tracker</h2>
 
         <p style={{ color: "red" }}>
@@ -73,6 +69,10 @@ function Welcome({ onLogout }) {
           Verify Email
         </button>
       </div>
+
+      {/* 👇 EXPENSE TRACKER */}
+      <ExpenseTracker />
+
     </div>
   );
 }
