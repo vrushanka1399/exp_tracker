@@ -1,20 +1,11 @@
-import { useState } from "react";
-import Login from "./Login";
-import Welcome from "./Welcome";
+import React from "react";
+import ExpenseTracker from "./ExpenseTracker";
 
 function App() {
-
-  const [isLogged, setIsLogged] = useState(
-    !!localStorage.getItem("token")
-  );
-
   return (
-    <>
-      {isLogged 
-        ? <Welcome onLogout={()=>setIsLogged(false)} /> 
-        : <Login onLogin={()=>setIsLogged(true)} />
-      }
-    </>
+    <div>
+      <ExpenseTracker />
+    </div>
   );
 }
 

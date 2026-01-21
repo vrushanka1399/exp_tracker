@@ -1,152 +1,66 @@
-﻿import React, { useState, useEffect } from "react";
-import { auth, database } from "./firebase";
-import { ref, push, set, onValue, remove, update } from "firebase/database";
+﻿import React, { useEffect, useState } from "react";
+import { fetchExpenses, addExpense } from "./api";
 
-function ExpenseTracker() {
-
+const ExpenseTracker = () => {
   const [amount, setAmount] = useState("");
-  const [desc, setDesc] = useState("");
-  const [category, setCategory] = useState("Food");
   const [expenses, setExpenses] = useState([]);
-  const [editId, setEditId] = useState(null);
+  const [total, setTotal] = useState(0);
 
-  const userId = auth.currentUser?.uid;
-
-  // GET expenses
+  // Load expenses
   useEffect(() => {
-    if (!userId) return;
+    fetchExpenses()
+      .then((data) => {
+        setExpenses(data);
+        calculateTotal(data);
+      })
+      .catch((err) => console.log(err));
+  }, []);
 
-    const expensesRef = ref(database, `expenses/${userId}`);
-    onValue(expensesRef, (snapshot) => {
-      const data = snapshot.val() || {};
-      const arr = Object.keys(data).map(key => ({
-        id: key,
-        ...data[key]
-      }));
-      setExpenses(arr);
-    });
-  }, [userId]);
-
-  // ADD / UPDATE
-  const submitHandler = (e) => {
-    e.preventDefault();
-
-    if (!amount || !desc) {
-      alert("Fill all fields");
-      return;
-    }
-
-    const expenseData = { amount, desc, category };
-
-    // UPDATE
-    if (editId) {
-      const expRef = ref(database, `expenses/${userId}/${editId}`);
-
-      update(expRef, expenseData)
-        .then(() => {
-          console.log("Expense successfully updated");
-          setEditId(null);
-        });
-
-    } 
-    // ADD
-    else {
-      const expensesRef = ref(database, `expenses/${userId}`);
-      const newExpRef = push(expensesRef);
-
-      set(newExpRef, expenseData)
-        .then(() => console.log("Expense added"));
-    }
-
-    setAmount("");
-    setDesc("");
-    setCategory("Food");
+  const calculateTotal = (list) => {
+    const sum = list.reduce(
+      (acc, item) => acc + Number(item.amount),
+      0
+    );
+    setTotal(sum);
   };
 
-  // DELETE
-  const deleteHandler = (id) => {
-    const expRef = ref(database, `expenses/${userId}/${id}`);
+  const handleAdd = async () => {
+    if (!amount) return;
 
-    remove(expRef)
-      .then(() => {
-        console.log("Expense successfully deleted");
-      });
-  };
+    const newExpense = { amount };
 
-  // EDIT
-  const editHandler = (exp) => {
-    setAmount(exp.amount);
-    setDesc(exp.desc);
-    setCategory(exp.category);
-    setEditId(exp.id);
+    try {
+      const savedExpense = await addExpense(newExpense);
+      const updatedList = [...expenses, savedExpense];
+      setExpenses(updatedList);
+      calculateTotal(updatedList);
+      setAmount("");
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "auto", marginTop: "30px" }}>
+    <div>
+      <h1>Expense Tracker</h1>
 
-      <h2>{editId ? "Edit Expense" : "Add Expense"}</h2>
+      <input
+        placeholder="Enter amount"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+      />
 
-      <form onSubmit={submitHandler}>
+      <button onClick={handleAdd}>Add</button>
 
-        <input
-          type="number"
-          placeholder="Amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
+      <h3>Total: {total}</h3>
 
-        <input
-          type="text"
-          placeholder="Description"
-          value={desc}
-          onChange={(e) => setDesc(e.target.value)}
-        />
-
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          <option>Food</option>
-          <option>Petrol</option>
-          <option>Salary</option>
-          <option>Shopping</option>
-        </select>
-
-        <button>
-          {editId ? "Update" : "Add"}
-        </button>
-      </form>
-
-      <h3>Saved Expenses</h3>
-
-      {expenses.map((e) => (
-        <div
-          key={e.id}
-          style={{
-            border: "1px solid #ccc",
-            padding: "8px",
-            margin: "8px 0"
-          }}
-        >
-          ₹{e.amount} - {e.desc} ({e.category})
-
-          <div style={{ marginTop: "5px" }}>
-            <button onClick={() => editHandler(e)}>
-              Edit
-            </button>
-
-            <button
-              onClick={() => deleteHandler(e.id)}
-              style={{ marginLeft: "5px" }}
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      ))}
-
+      <ul role="list">
+        {expenses.map((item) => (
+          <li key={item.id}>{item.amount}</li>
+        ))}
+      </ul>
     </div>
   );
-}
+};
 
 export default ExpenseTracker;

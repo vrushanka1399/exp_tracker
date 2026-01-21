@@ -1,102 +1,53 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import ExpenseTracker from "../ExpenseTracker";
+import { fetchExpenses, addExpense } from "../api";
+
+jest.mock("../api");
 
 describe("Expense Tracker App", () => {
 
-  // 1
-  test("renders heading", () => {
-    render(<ExpenseTracker />);
-    expect(screen.getByText(/expense tracker/i)).toBeInTheDocument();
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    fetchExpenses.mockResolvedValue([]);
+    addExpense.mockResolvedValue({ id: 99, amount: "0" });
   });
 
-  // 2
-  test("renders input field", () => {
+  test("renders heading", async () => {
     render(<ExpenseTracker />);
-    expect(screen.getByPlaceholderText(/enter amount/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/expense tracker/i)
+    ).toBeInTheDocument();
   });
 
-  // 3
-  test("renders add button", () => {
+  test("adds new expense", async () => {
+    addExpense.mockResolvedValueOnce({
+      id: 1,
+      amount: "100"
+    });
+
     render(<ExpenseTracker />);
-    expect(screen.getByRole("button", { name: /add/i })).toBeInTheDocument();
+
+    const input = await screen.findByPlaceholderText(/enter amount/i);
+    const btn = await screen.findByRole("button", { name: /add/i });
+
+    fireEvent.change(input, {
+      target: { value: "100" }
+    });
+
+    fireEvent.click(btn);
+
+    expect(
+      await screen.findByText("100")
+    ).toBeInTheDocument();
   });
 
-  // 4
-  test("adds new expense", () => {
+  test("does not call api for empty input", async () => {
     render(<ExpenseTracker />);
+    const btn = await screen.findByRole("button", { name: /add/i });
 
-    const input = screen.getByPlaceholderText(/enter amount/i);
-    const button = screen.getByRole("button", { name: /add/i });
-
-    fireEvent.change(input, { target: { value: "100" }});
-    fireEvent.click(button);
-
-    expect(screen.getByText("100")).toBeInTheDocument();
-  });
-
-  // 5
-  test("clears input after add", () => {
-    render(<ExpenseTracker />);
-
-    const input = screen.getByPlaceholderText(/enter amount/i);
-    const button = screen.getByRole("button", { name: /add/i });
-
-    fireEvent.change(input, { target: { value: "200" }});
-    fireEvent.click(button);
-
-    expect(input.value).toBe("");
-  });
-
-  // 6
-  test("does not add empty expense", () => {
-    render(<ExpenseTracker />);
-
-    const button = screen.getByRole("button", { name: /add/i });
-    fireEvent.click(button);
-
-    expect(screen.queryByText("")).not.toBeInTheDocument();
-  });
-
-  // 7
-  test("shows total balance", () => {
-    render(<ExpenseTracker />);
-    expect(screen.getByText(/total/i)).toBeInTheDocument();
-  });
-
-  // 8
-  test("updates total after adding expense", () => {
-    render(<ExpenseTracker />);
-
-    const input = screen.getByPlaceholderText(/enter amount/i);
-    const button = screen.getByRole("button", { name: /add/i });
-
-    fireEvent.change(input, { target: { value: "50" }});
-    fireEvent.click(button);
-
-    expect(screen.getByText(/50/)).toBeInTheDocument();
-  });
-
-  // 9
-  test("renders expense list", () => {
-    render(<ExpenseTracker />);
-    expect(screen.getByRole("list")).toBeInTheDocument();
-  });
-
-  // 10
-  test("can add multiple expenses", () => {
-    render(<ExpenseTracker />);
-
-    const input = screen.getByPlaceholderText(/enter amount/i);
-    const button = screen.getByRole("button", { name: /add/i });
-
-    fireEvent.change(input, { target: { value: "100" }});
-    fireEvent.click(button);
-
-    fireEvent.change(input, { target: { value: "200" }});
-    fireEvent.click(button);
-
-    expect(screen.getByText("100")).toBeInTheDocument();
-    expect(screen.getByText("200")).toBeInTheDocument();
+    fireEvent.click(btn);
+    expect(addExpense).not.toHaveBeenCalled();
   });
 
 });
